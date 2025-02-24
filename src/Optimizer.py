@@ -7,14 +7,14 @@ class Optimizer():
         self.stepsize = stepsize
         self.max_iter = max_iter
 
-    def fit(self, method, func):
+    def fit(self, method, func, a=1):
         """
         Choose and execute an optimization method.
         """
         if func == 'rosenbrock':
-            objfun = self.get_rosenbrock_obj_func()
+            objfun = self.get_rosenbrock_obj_func(a)
         elif func == 'quadratic':
-            objfun = self.quadratic_function()
+            objfun = self.get_quadratic_obj_func(a)
 
         if method == 'steepest_grad_descent':
             return self.steepest_gradient_descent(objfun)
@@ -24,26 +24,31 @@ class Optimizer():
             raise \
                 Exception('method` must be one on [steepest_grad_descent, newtons_methods]')
 
-    def get_quadratic_obj_func(self, return_hess=True):
+    def get_quadratic_obj_func(self, t):
+        """
+        f(x) = x^2 + ay^2
+        """
 
         def gradient(x, a):
             n = len(x)
             grad = np.zeros(n)
             grad[0] = 2*x[0]
-            grad[1] = a*x[1]**2
+            grad[1] = 2*a*x[1]
             return grad
 
         def eval_func(x, a):
             return x[0]**2 + a*x[1]**2
 
-        if not return_hess:
-            objfun = lambda x, a: [eval_func(x, a), gradient(x, a)]
-            return objfun
-        else:
-            objfun = lambda x, a: [eval_func(x, a), gradient(x, a)]
-            return objfun
+        def hessian(a):
+            return np.array([
+                [2, 0],
+                [0, 2*a]
+            ])
 
-    def get_rosenbrock_obj_func(self):
+        objfun = lambda x: [eval_func(x, a=t), gradient(x, a=t), hessian(a=t)]
+        return objfun
+
+    def get_rosenbrock_obj_func(self, a):
         """
         Return objective function for Rosenbrock.
         """
@@ -78,7 +83,7 @@ class Optimizer():
         stop = False
         x_old = np.array(self.x0)
         
-        f, gradf = objfun(x_old)
+        f, gradf, Hess = objfun(x_old)
         normgrad = np.linalg.norm(gradf)
         
         if normgrad < self.tol:
@@ -86,12 +91,12 @@ class Optimizer():
         
         trace = {'iter': [], 'obj_fun': [], 'norm_grad': [], 'tol': []}
         while not stop and iter_count < self.max_iter:
-            p = -inv(Hess)*gradf 
+            p = -np.linalg.inv(Hess) @ gradf 
             stepsize = 1e-3  # Fixed step size for simplicity
             
             x_new = x_old + stepsize * p
             
-            f, gradf = objfun(x_new)
+            f, gradf, Hess = objfun(x_new)
             normgrad = np.linalg.norm(gradf)
             
             current_tol = np.linalg.norm(x_new - x_old)
@@ -130,7 +135,7 @@ class Optimizer():
         stop = False
         x_old = np.array(self.x0)
         
-        f, gradf = objfun(x_old)
+        f, gradf, _ = objfun(x_old)
         normgrad = np.linalg.norm(gradf)
         
         if normgrad < self.tol:
@@ -143,7 +148,7 @@ class Optimizer():
             
             x_new = x_old + stepsize * p
             
-            f, gradf = objfun(x_new)
+            f, gradf, _ = objfun(x_new)
             normgrad = np.linalg.norm(gradf)
             
             current_tol = np.linalg.norm(x_new - x_old)
