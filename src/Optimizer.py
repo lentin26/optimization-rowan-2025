@@ -1,30 +1,32 @@
 import numpy as np
 
 class Optimizer():
-    def __init__(self, x0, a=1, tol=1e-7, stepsize=1e-3, max_iter=10000):
+    def __init__(self, x0, method, func, tol=1e-7, stepsize=1e-3, max_iter=10000):
         self.x0 = x0
         self.tol = tol
         self.stepsize = stepsize
         self.max_iter = max_iter
+        self.method = method
+        self.func = func
 
-    def fit(self, method, func, a=1):
+    def fit(self, a=1):
         """
         Choose and execute an optimization method.
         """
-        if func == 'rosenbrock':
+        if self.func == 'rosenbrock':
             objfun = self.get_rosenbrock_obj_func(a)
-        elif func == 'quadratic':
+        elif self.func == 'quadratic':
             objfun = self.get_quadratic_obj_func(a)
 
-        if method == 'steepest_grad_descent':
+        if self.method == 'steepest_grad_descent':
             return self.steepest_gradient_descent(objfun)
-        elif method == 'newtons_method':
+        elif self.method == 'newtons_method':
             return self.newtons_methods(objfun)
         else:
             raise \
                 Exception('method` must be one on [steepest_grad_descent, newtons_methods]')
 
-    def get_quadratic_obj_func(self, t):
+    def get_quadratic_obj_func(self, a):
         """
         f(x) = x^2 + ay^2
         """
@@ -45,10 +47,10 @@ class Optimizer():
                 [0, 2*a]
             ])
 
-        objfun = lambda x: [eval_func(x, a=t), gradient(x, a=t), hessian(a=t)]
+        objfun = lambda x: [eval_func(x, a=a), gradient(x, a=a), hessian(a=a)]
         return objfun
 
-    def get_rosenbrock_obj_func(self, a):
+    def get_rosenbrock_obj_func(self, a=1):
         """
         Return objective function for Rosenbrock.
         """
@@ -65,7 +67,7 @@ class Optimizer():
             n = len(x)
             grad = np.zeros(n)
 
-            grad[0] = -2*(1 - x[0]) - 400*x[0]*(x[1] - x[0]**2)
+            grad[0] = -2*(a - x[0]) - 400*x[0]*(x[1] - x[0]**2)
             grad[1] = 200*(x[1] - x[0]**2)
 
             return grad
