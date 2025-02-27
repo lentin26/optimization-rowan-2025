@@ -17,6 +17,8 @@ class Optimizer():
             objfun = self.get_rosenbrock_obj_func(a)
         elif self.func == 'quadratic':
             objfun = self.get_quadratic_obj_func(a)
+        elif self.func == 'hw2':
+            objfun = self.get_hw2_obj_func()
 
         if self.method == 'steepest_grad_descent':
             return self.steepest_gradient_descent(objfun)
@@ -25,6 +27,29 @@ class Optimizer():
         else:
             raise \
                 Exception('method` must be one on [steepest_grad_descent, newtons_methods]')
+
+    def get_hw2_obj_func(self):
+        """
+        """
+        def gradient(x):
+            n = len(x)
+            grad = np.zeros(n)
+            grad[0] = 2*x[0]        # E_{max}
+            grad[1] = 2*x[1]      # K
+            grad[2] =     1          # n
+            return grad
+
+        def eval_func(x, a):
+            return x[0]**2 + a*x[1]**2
+
+        def hessian(a):
+            return np.array([
+                [2, 0],
+                [0, 2*a]
+            ])
+
+        objfun = lambda x: [eval_func(x), gradient(x), hessian()]
+        return objfun
 
     def get_quadratic_obj_func(self, a):
         """
