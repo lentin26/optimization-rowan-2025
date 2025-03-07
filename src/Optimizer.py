@@ -31,10 +31,12 @@ class Optimizer():
     def get_hw2_obj_func(self):
         """
         """
+        E = [10.2, 22.8, 40.5, 55.3, 75.1, 88.2, 93.4]
+        d = [5, 10, 20, 30, 50, 80, 100]
         def gradient(x):
             n = len(x)
             grad = np.zeros(n)
-            grad[0] = 2*x[0]        # E_{max}
+            grad[0] = 2*E -   2    # E_{max}
             grad[1] = 2*x[1]      # K
             grad[2] =     1          # n
             return grad
